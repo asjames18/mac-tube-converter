@@ -5,6 +5,7 @@ Download, convert, and transcribe video on your Mac.
 [![Latest release](https://img.shields.io/github/v/release/asjames18/mac-tube-converter)](https://github.com/asjames18/mac-tube-converter/releases/latest)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-000000?logo=apple&logoColor=white)
 ![Universal](https://img.shields.io/badge/universal-arm64%20%2B%20x86__64-555555)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview
 
@@ -106,9 +107,9 @@ You need macOS 13 or later and a Swift 6 toolchain (this package declares `swift
 
 ## License
 
-This repository does not currently include a LICENSE file for the app source.
+The app's own code is licensed under the [MIT License](LICENSE). Copyright (c) 2026 Antonio James.
 
-Third-party tools bundled in the download, and their licenses, are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Copies also ship inside the app at `Contents/Resources/Licenses`.
+Bundled tools keep their own licenses: ffmpeg is GPLv3, Deno is MIT, yt-dlp is Unlicense, and whisper.cpp is MIT. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details. Copies also ship inside the app at `Contents/Resources/Licenses`.
 
 - yt-dlp 2026.10.26 — Unlicense (public domain)
 - Deno 2.9.8 — MIT
