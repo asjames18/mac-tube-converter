@@ -22,6 +22,12 @@ MacTube Converter is a native Swift app for downloading video or audio from link
 - Session results, progress, activity logs, cancel, and numbered filenames for conversions and transcripts so existing files are not overwritten. Downloads also refuse to overwrite existing files.
 - Keyboard: Command-Return starts the selected operation; Escape cancels it.
 
+## Screenshots
+
+| Download | Speech model setup |
+| --- | --- |
+| ![Download video or audio from a link as MP4, MP3, M4A or best original](docs/screenshot-download.png) | ![First launch: one click downloads and checks the Whisper speech model](docs/screenshot-model-setup.png) |
+
 ## Download
 
 Get MacTube Converter 1.3.1 from the [latest GitHub release](https://github.com/asjames18/mac-tube-converter/releases/latest), or from the [Melanated in Tech apps page](https://melanatedintech.com/apps).
