@@ -96,11 +96,12 @@ struct ToolsSheet: View {
     @ObservedObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
     @State private var confirmUpdate = false
+    @State private var showModelDownload = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Tools & transcription").font(.title2.weight(.semibold))
-            Text("MacTube uses local media tools. Install missing tools, then refresh their status.")
+            Text("MacTube runs yt-dlp, ffmpeg and whisper-cli on your Mac. The downloadable app includes all three, plus Deno for YouTube.")
                 .foregroundStyle(.secondary)
             ForEach(model.toolStatuses) { status in
                 HStack(alignment: .top) {
@@ -108,7 +109,7 @@ struct ToolsSheet: View {
                         .foregroundStyle(status.isAvailable ? Color.green : Color.orange)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(status.name).font(.headline)
-                        Text(status.path ?? "Not found").font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                        Text(status.path.map { ToolLocator.isBundled($0) ? "Built in · \($0)" : $0 } ?? "Not found").font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
                         if let version = model.toolVersions[status.name] {
                             Text(versionText(version)).font(.caption)
                                 .foregroundStyle(version.isOutdated ? Color.orange : Color.secondary)
@@ -134,6 +135,7 @@ struct ToolsSheet: View {
                         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
+                Button("Download Model…") { showModelDownload = true }.disabled(model.isBusy)
                 Button("Choose Model…") { model.chooseModel() }
             }
             HStack {
@@ -145,6 +147,7 @@ struct ToolsSheet: View {
             }
         }
         .padding(28).frame(width: 520)
+        .sheet(isPresented: $showModelDownload) { ModelSetupSheet(model: model, downloader: model.modelDownloader) }
         .task { await model.refreshToolVersions() }
         .confirmationDialog("Do you really want to do this action?", isPresented: $confirmUpdate) {
             Button("Update yt-dlp") { Task { await model.updateYtDlp() } }

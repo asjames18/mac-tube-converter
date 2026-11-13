@@ -21,3 +21,5 @@ Models/
 *.pem
 *.p12
 *.key
+vendor/
+.vendor-work/

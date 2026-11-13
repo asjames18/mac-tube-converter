@@ -74,6 +74,7 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showTools) { ToolsSheet(model: model) }
+        .sheet(isPresented: $model.showModelSetup) { ModelSetupSheet(model: model, downloader: model.modelDownloader) }
         .task { await model.refreshToolStatus() }
     }
 

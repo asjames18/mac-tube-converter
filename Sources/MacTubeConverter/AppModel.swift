@@ -66,6 +66,10 @@ final class AppModel: ObservableObject {
     @Published var jobProgress: Double?
     @Published var toolVersions: [String: ToolVersion] = [:]
     @Published var suggestYtDlpUpdate = false
+    /// Shown once per launch when no Whisper model is installed.
+    @Published var showModelSetup = false
+    private var modelSetupOffered = false
+    let modelDownloader = ModelDownloader()
     private var receivingTranscription = false
     @Published var logText = ""
     private var pendingLog: [String] = []
@@ -140,6 +144,11 @@ final class AppModel: ObservableObject {
         }
         if selectedModelIsMissing { appendLog("Selected Whisper model is missing: \(modelPath)") }
         appendLog(whisperModelURL() == nil ? "Whisper model missing." : "Whisper model found.")
+        if whisperModelURL() == nil, modelPath.isEmpty, !modelSetupOffered,
+           ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            modelSetupOffered = true
+            showModelSetup = true
+        }
         flushLog()
     }
 
@@ -147,7 +156,7 @@ final class AppModel: ObservableObject {
         toolVersions = await ToolVersions.fetch()
     }
 
-    var canUpdateYtDlp: Bool { ToolVersions.brewPath() != nil && !isBusy }
+    var canUpdateYtDlp: Bool { ToolVersions.brewPath() != nil && !isBusy && !ToolLocator.isBundled(toolPath("yt-dlp")) }
 
     /// Runs `brew upgrade yt-dlp`. The UI asks for confirmation before calling this.
     func updateYtDlp() async {
@@ -217,7 +226,7 @@ final class AppModel: ObservableObject {
 
         let pathFile = FileManager.default.temporaryDirectory.appendingPathComponent("MacTubeConverter-path-\(UUID().uuidString).txt")
         defer { try? FileManager.default.removeItem(at: pathFile) }
-        var arguments = downloadFormat.arguments + ["--no-overwrites", "--newline", "--ffmpeg-location", ffmpeg,
+        var arguments = downloadFormat.arguments + ToolLocator.jsRuntimeArguments() + ["--no-overwrites", "--newline", "--ffmpeg-location", ffmpeg,
                                                     "--print-to-file", "after_move:filepath", pathFile.path(percentEncoded: false)]
         if singleVideoOnly {
             arguments.append("--no-playlist")
@@ -363,7 +372,7 @@ final class AppModel: ObservableObject {
             let template = tempFolder.appendingPathComponent("%(title).150B [%(id)s].%(ext)s").path(percentEncoded: false)
             try await runProcess(
                 tool: ytDLP,
-                arguments: ["-f", "bestaudio/best", "--no-playlist", "--newline", "-x", "--audio-format", "wav", "--postprocessor-args", "ffmpeg:-ac 1 -ar 16000", "--ffmpeg-location", ffmpeg, "-o", template, "--", trimmedURL],
+                arguments: ToolLocator.jsRuntimeArguments() + ["-f", "bestaudio/best", "--no-playlist", "--newline", "-x", "--audio-format", "wav", "--postprocessor-args", "ffmpeg:-ac 1 -ar 16000", "--ffmpeg-location", ffmpeg, "-o", template, "--", trimmedURL],
                 title: "Downloading audio with yt-dlp..."
             )
 
@@ -459,7 +468,7 @@ final class AppModel: ObservableObject {
         process.executableURL = URL(fileURLWithPath: tool)
         process.arguments = arguments
         var environment = ProcessInfo.processInfo.environment
-        environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:" + (environment["PATH"] ?? "")
+        environment["PATH"] = ToolLocator.searchPath(existing: environment["PATH"])
         environment.merge(extraEnvironment) { _, new in new }
         process.environment = environment
         process.standardInput = FileHandle.nullDevice

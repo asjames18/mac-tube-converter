@@ -57,3 +57,20 @@ On the first 35 seconds of that recording, Base English took 42.4 seconds with t
 Models come from the [official whisper.cpp model distribution](https://huggingface.co/ggerganov/whisper.cpp/tree/main). Download integrity was checked against upstream hashes. Optional reproduction tests use `MACTUBE_REPRO_AUDIO`, `MACTUBE_REPRO_MODEL`, and `MACTUBE_REPRO_OUTPUT`; the output directory retains the transcript, subtitles, progress log, and decoder log for inspection.
 
 The single-pass 65-second reproduction completed, and the full recording progressed to 32% (about 118 seconds decoded) with live text. That background full-recording test was intentionally interrupted when the user began the same recording in the updated app, to avoid CPU contention. Full six-minute export was not confirmed in that test. Model discovery is cached and runs off the main actor; known model files are checked without enumerating the app's launch directory.
+
+## Free download build (everything included)
+
+1. `scripts/fetch-bundled-tools.sh` downloads (checksum-verified) universal yt-dlp, Deno (the JavaScript runtime yt-dlp uses for YouTube) and static
+   ffmpeg/ffprobe, and builds a static universal whisper-cli, into `vendor/` (not committed).
+2. `scripts/build-app.sh` builds a universal (arm64 + x86_64) app with those tools inside
+   `Contents/Resources/bin` and ad-hoc signs it. Requires macOS 13 Ventura or later.
+3. `scripts/package-release.sh build/MacTubeConverter.app <version>` writes the `.zip` and `.dmg`.
+
+The app always prefers its built-in tools and falls back to Homebrew only when they are absent
+(`MACTUBE_BUNDLED_TOOLS_ONLY=1` disables the fallback). On first launch without a speech model it
+offers a one-click download of `ggml-small.en-q5_1.bin` (190 MB, SHA-256 checked) into
+`~/Library/Application Support/MacTubeConverter/Models`. Third-party licenses: `THIRD_PARTY_NOTICES.md`.
+
+Installing on macOS 15/26: move the app to Applications and open it. When macOS says it can't
+verify the app, click Done, open System Settings > Privacy & Security, click **Open Anyway** next to
+MacTubeConverter and confirm. Fallback: `xattr -dr com.apple.quarantine /Applications/MacTubeConverter.app`.
